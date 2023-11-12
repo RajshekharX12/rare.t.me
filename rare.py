@@ -37,10 +37,10 @@ scheduler.start()
 
 # pyrogram client
 app = Client(
+    "rare",
     api_id=int(os.getenv("API_ID")),
     api_hash=os.getenv("API_HASH"),
     bot_token=os.getenv("BOT_TOKEN"),
-    in_memory=True,
 )
 
 @app.on_message(filters.command(["start", "help", "ping"]))

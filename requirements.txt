@@ -3,4 +3,4 @@
    aiohttp>=3.8.0,<3.9.0
    python-dotenv>=0.20.0,<0.21.0
    tzlocal==2.1
-   
+   tgcrypto

@@ -10,8 +10,13 @@ from pyrogram import Client, filters
 from tzlocal import get_localzone
 
 # strings
-CHANNEL_MSG = """Live Bitcoin Prices: \n\n• USDT: ${}\n\n• Updated on {}."""
+CHANNEL_MSG = """Live Bitcoin Prices: \n\n• USD: ${}\n\n• Updated on {}."""
 BIO_MSG = """Bitcoin's Prices are ${}"""
+
+# CoinMarketCap API
+CMC_API_KEY = os.getenv("CMC_API_KEY")
+CMC_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest"
+CMC_PARAMS = {"symbol": "BTC", "convert": "USD"}
 
 # logger
 logging.basicConfig(
@@ -27,7 +32,7 @@ log = logging.getLogger("PriceUpdaterBot")
 # env
 load_dotenv()
 
-if not all(os.environ.get(i) for i in ("CHAT_ID", "MESSAGE_ID", "API_KEY", "API_ID", "API_HASH", "BOT_TOKEN")):
+if not all(os.environ.get(i) for i in ("CHAT_ID", "MESSAGE_ID", "API_ID", "API_HASH", "BOT_TOKEN", "CMC_API_KEY")):
     log.critical("Missing some Variables! Check your ENV file..")
     quit(0)
 
@@ -48,15 +53,13 @@ async def init(client, msg):
     await msg.reply_text("Hello there, I'm alive & running!")
 
 async def get_prices():
-    url = "https://api.binance.com/api/v3/ticker/price"
-    params = {"symbol": "BTCUSDT"}
-
+    headers = {"X-CMC_PRO_API_KEY": CMC_API_KEY}
     async with aiohttp.ClientSession() as aio:
         try:
-            resp = await aio.get(url, params=params)
+            resp = await aio.get(CMC_URL, headers=headers, params=CMC_PARAMS)
             if resp.status == 200:
                 resp_data = await resp.json()
-                price = float(resp_data["price"])
+                price = resp_data["data"][0]["quote"]["USD"]["price"]
                 timestamp = datetime.now().strftime("%F %T")
                 return timestamp, round(price, 5)
         except Exception as exc:

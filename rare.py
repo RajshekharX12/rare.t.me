@@ -67,19 +67,25 @@ async def scheduler_func():
     if chat_id.lstrip("-").isdigit():
         chat_id = int(chat_id)
 
+    log.info("Fetching prices...")
     price = await get_prices()
+    log.info(f"Prices: {price}")
+
     if not isinstance(price, tuple):
+        log.warning("Invalid price format.")
         return
 
     _time, price = price
     edit_msg = CHANNEL_MSG.format(str(price), _time)
     bio_msg = BIO_MSG.format(str(price))
     
+    log.info(f"Editing message in chat {chat_id} with new prices: {edit_msg}")
     await asyncio.gather(
         app.edit_message(chat_id, int(os.getenv("MESSAGE_ID")), edit_msg),
         app.set_chat_description(chat_id, bio_msg),
         return_exceptions=True,
     )
+    log.info("Message edited successfully.")
 
 scheduler.add_job(
     scheduler_func,

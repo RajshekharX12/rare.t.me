@@ -1,4 +1,4 @@
-   pyrogram==1.4.16
+   pyrogram>=1.4.16
    apscheduler==3.8.0
    aiohttp>=3.8.0,<3.9.0
    python-dotenv>=0.20.0,<0.21.0

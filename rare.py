@@ -28,7 +28,7 @@ logging.getLogger("apscheduler").setLevel(logging.ERROR)
 log = logging.getLogger("PriceUpdaterBot")
 
 # Check for required environment variables
-required_env_vars = ["CHAT_ID", "MESSAGE_ID", "API_ID", "API_HASH", "BOT_TOKEN", "CMC_API_KEY"]
+required_env_vars = ["CHAT_ID", "API_ID", "API_HASH", "BOT_TOKEN", "CMC_API_KEY"]
 if not all(os.environ.get(i) for i in required_env_vars):
     log.critical("Missing some Variables! Check your ENV file..")
     log.info(f"Actual environment variables: {os.environ}")
@@ -45,11 +45,6 @@ app = Client(
     api_hash=os.getenv("API_HASH"),
     bot_token=os.getenv("BOT_TOKEN"),
 )
-
-# Command handler
-@app.on_message(filters.command(["start", "help", "ping"]))
-async def init(client, msg):
-    await msg.reply_text("Hello there, I'm alive & running!")
 
 # Function to get Bitcoin prices
 async def get_prices():
@@ -80,16 +75,14 @@ async def scheduler_func():
         return
 
     _time, price = price
-    edit_msg = os.getenv("CHANNEL_MSG").format(str(price), _time)
     bio_msg = os.getenv("BIO_MSG").format(str(price))
     
-    log.info(f"Editing message in chat {chat_id} with new prices: {edit_msg}")
-    await asyncio.gather(
-        app.edit_message(chat_id, int(os.getenv("MESSAGE_ID")), edit_msg),
-        app.set_chat_description(chat_id, bio_msg),
-        return_exceptions=True,
-    )
-    log.info("Message edited successfully.")
+    log.info(f"Setting channel description in chat {chat_id} with new price: {bio_msg}")
+    try:
+        await app.set_chat_description(chat_id, bio_msg)
+        log.info("Channel description set successfully.")
+    except Exception as exc:
+        log.exception(exc)
 
 # Add job to scheduler
 scheduler.add_job(
